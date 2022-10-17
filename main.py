@@ -9,6 +9,8 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Embedding
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from sklearn.model_selection import train_test_split
+from tensorflow import keras
 
 class TextParser:
     def __init__(self, file_path):
@@ -104,9 +106,18 @@ def generate_text_seq(model, tokenizer, text_seq_length, seed_text, n_words):
         text.append(predicted_word)
     return ' '.join(text)
 
-    
+
+def train():
+    text_parser = TextParser('shakespear.txt')
+    model = Model(text_parser.text, 10)
+    history = model.train(10)
+    save_model(model.model, 'model.h5')
+    return model
 
 
+def get_model_accuracy(model, xs, ys):
+    loss_accuray = model.evaluate(xs, ys, verbose=0)
+    return loss_accuray
 
 if __name__ == '__main__':
     t = TextParser('shakespear.txt')
@@ -127,6 +138,8 @@ if __name__ == '__main__':
     sequences = np.array(sequences)
     X, y = sequences[:, :-1], sequences[:,-1]
 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+
     vocab_size = len(tokenizer.word_index) + 1
 
     y = to_categorical(y, num_classes=vocab_size)
@@ -140,11 +153,17 @@ if __name__ == '__main__':
     model.add(Dense(100, activation='relu'))
     model.add(Dense(vocab_size, activation='softmax'))
 
-    # model.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+    model.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+    # model.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 
     # model.fit(X, y, batch_size=256, epochs=100)
 
     # save_model(model, 'shakespear_model.h5')
     model = load_model(model, 'shakespear_model.h5')
 
-    print(generate_text_seq(model, tokenizer, seq_length, 'shall i compare thee to a summer', 1000))
+    # print(generate_text_seq(model, tokenizer, seq_length, 'shall i compare thee to a summer', 24))
+    # prepare x_test and y_test for evaluation
+    X_test = pad_sequences(X_test, maxlen=seq_length, padding='pre')
+    y_test = to_categorical(y_test, num_classes=vocab_size)
+    print(X_test.shape, y_test.shape)
+    print(get_model_accuracy(model, X_test, y_test))
