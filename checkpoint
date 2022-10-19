@@ -1,0 +1,2 @@
+model_checkpoint_path: "python_model.tf"
+all_model_checkpoint_paths: "python_model.tf"

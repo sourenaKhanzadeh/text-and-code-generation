@@ -42743,4 +42743,3 @@ print("Binary Left Shift", c)
 c = a >> 2
 print("Binary Right Shift", c)
 
-
